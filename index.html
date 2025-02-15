@@ -3,100 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ring on Finger - Fixed Version</title>
-
-    <!-- Mediapipe -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <title>3D Model + Back Camera 📷💍</title>
 
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
 
     <style>
         body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
-        video { width: 100%; height: auto; max-width: 640px; border: 2px solid white; }
+        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
     </style>
 </head>
 <body>
-    <h1>Ring Tracking - Debug Mode</h1>
-    <p>Move your hand in front of the camera!</p>
+    <h1>3D Model + Back Camera 💍</h1>
+    <p>Move your phone to see the model overlaid on the camera view.</p>
 
     <!-- نمایش دوربین -->
-    <video id="videoInput" autoplay playsinline></video>
+    <video id="videoElement" autoplay playsinline></video>
 
-    <!-- نمایش سه‌بعدی حلقه -->
+    <!-- صحنه سه‌بعدی A-Frame -->
     <a-scene embedded>
         <a-camera position="0 0 5"></a-camera>
 
         <!-- مدل حلقه -->
         <a-entity 
-            id="ring"
             gltf-model="jewelery_ring_diamonds.glb"
-            scale="0.08 0.08 0.08"
+            scale="0.1 0.1 0.1"
             position="0 0 -3"
-            rotation="0 90 0">
+            rotation="0 180 0">
         </a-entity>
     </a-scene>
 
     <script>
-        const videoElement = document.getElementById('videoInput');
-        const ringModel = document.getElementById("ring");
-
-        // فعال کردن Mediapipe Hands
-        const hands = new Hands({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-        });
-
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.7,
-            minTrackingConfidence: 0.7
-        });
-
-        hands.onResults((results) => {
-            if (results.multiHandLandmarks.length > 0) {
-                const landmarks = results.multiHandLandmarks[0];
-
-                // دریافت مختصات انگشت حلقه (Mediapipe Index 16)
-                const ringFingerTip = landmarks[16];
-
-                // تبدیل مختصات Mediapipe به مختصات A-Frame
-                let scaleFactor = 2;
-                let x = (ringFingerTip.x - 0.5) * scaleFactor;
-                let y = (-ringFingerTip.y + 0.5) * scaleFactor;
-                let z = -ringFingerTip.z * 3;
-
-                console.log(`Ring Position: x=${x}, y=${y}, z=${z}`);
-
-                // تنظیم موقعیت حلقه
-                ringModel.setAttribute("position", `${x} ${y} ${z}`);
-            }
-        });
-
-        // فعال کردن دوربین پشتی
-        async function startHandTracking() {
+        async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" }  
+                    video: { facingMode: "environment" }  // فعال کردن دوربین پشت
                 });
-                videoElement.srcObject = stream;
-
-                const camera = new Camera(videoElement, {
-                    onFrame: async () => {
-                        await hands.send({ image: videoElement });
-                    },
-                    width: 640,
-                    height: 480
-                });
-                camera.start();
+                document.getElementById("videoElement").srcObject = stream;
             } catch (error) {
                 console.error("Error accessing camera: ", error);
                 alert("Camera access error: " + error.message);
             }
         }
 
-        startHandTracking();
+        startCamera();
     </script>
 </body>
 </html>

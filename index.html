@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hand Tracking Test</title>
+    <title>Ring on Finger - Hand Tracking</title>
+    
+    <!-- Mediapipe -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+
+    <!-- A-Frame برای نمایش مدل سه‌بعدی -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
     <style>
         body { text-align: center; font-family: Arial, sans-serif; }
         video, canvas { position: absolute; left: 50%; transform: translateX(-50%); }
@@ -14,7 +20,7 @@
     </style>
 </head>
 <body>
-    <h1>Hand Tracking Test ✋</h1>
+    <h1>Ring Tracking on Finger 💍</h1>
     <p>Move your hand in front of the camera!</p>
 
     <!-- ویدیو برای ورودی دوربین -->
@@ -22,10 +28,25 @@
     <!-- نمایش نتایج پردازش روی این Canvas -->
     <canvas id="outputCanvas"></canvas>
 
+    <!-- صحنه سه‌بعدی A-Frame -->
+    <a-scene embedded>
+        <a-camera position="0 0 5"></a-camera>
+
+        <!-- مدل حلقه (ابتدا در نقطه 0,0,0 قرار دارد و بعداً روی انگشت حرکت می‌کند) -->
+        <a-entity 
+            id="ring"
+            gltf-model="https://modelviewer.dev/shared-assets/models/DiamondRing.glb"
+            scale="0.1 0.1 0.1"
+            position="0 0 0"
+            rotation="0 90 0">
+        </a-entity>
+    </a-scene>
+
     <script>
         const videoElement = document.getElementById('videoInput');
         const canvasElement = document.getElementById('outputCanvas');
         const canvasCtx = canvasElement.getContext('2d');
+        const ringModel = document.getElementById("ring");
 
         // راه‌اندازی Mediapipe Hands
         const hands = new Hands({
@@ -43,11 +64,23 @@
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
 
-            if (results.multiHandLandmarks) {
-                for (const landmarks of results.multiHandLandmarks) {
-                    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
-                    drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 4 });
-                }
+            if (results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+
+                // **تشخیص انگشت حلقه (Mediapipe Index 16)**
+                const ringFingerTip = landmarks[16];
+
+                // نرمال‌سازی مختصات برای A-Frame
+                let x = (ringFingerTip.x - 0.5) * 2;
+                let y = (-ringFingerTip.y + 0.5) * 2;
+                let z = -ringFingerTip.z * 2;
+
+                // تنظیم موقعیت حلقه روی انگشت
+                ringModel.setAttribute("position", `${x} ${y} ${z}`);
+
+                // رسم نقاط انگشتان روی ویدیو
+                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
+                drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 4 });
             }
         });
 

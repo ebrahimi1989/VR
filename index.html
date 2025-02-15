@@ -3,35 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ring DisplayFixed 💍</title>
-
-    <!-- A-Frame -->
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <title>Camera Test 📷</title>
 
     <style>
         body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
+        video { width: 100%; height: auto; max-width: 800px; border: 2px solid white; }
     </style>
 </head>
 <body>
-    <h1>Displaying a Ring in Camera 💍</h1>
+    <h1>Camera is Open 📷</h1>
+    <p>If you see the camera feed, it's working correctly.</p>
 
-    <!-- صحنه سه‌بعدی A-Frame -->
-    <a-scene embedded>
-        <!-- نورپردازی برای نمایش مدل -->
-        <a-light type="directional" position="1 1 1" intensity="1"></a-light>
-        <a-light type="ambient" intensity="0.5"></a-light>
+    <!-- نمایش ویدیوی دوربین -->
+    <video id="videoElement" autoplay playsinline></video>
 
-        <!-- دوربین -->
-        <a-camera position="0 1.5 5"></a-camera>
+    <script>
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                document.getElementById("videoElement").srcObject = stream;
+            } catch (error) {
+                alert("Error accessing camera: " + error);
+            }
+        }
 
-        <!-- نمایش مدل حلقه -->
-        <a-entity 
-            gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
-            scale="1 1 1"
-            position="0 1 -3"
-            rotation="0 180 0">
-        </a-entity>
-    </a-scene>
-
+        startCamera();
+    </script>
 </body>
 </html>

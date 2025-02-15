@@ -3,17 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello WebAR</title>
+    <title>WebAR Ring on Finger</title>
+    
+    <!-- کتابخانه‌های WebAR و A-Frame -->
     <script src="https://cdn.zappar.io/zappar-aframe/2.0.0/zappar-aframe.min.js"></script>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
+    <!-- Mediapipe Hand Tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+
+    <script>
+        let handLandmarks = null;
+
+        // تنظیم Mediapipe برای شناسایی دست
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,  // فقط یک دست را شناسایی کن
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7
+        });
+
+        hands.onResults((results) => {
+            if (results.multiHandLandmarks.length > 0) {
+                handLandmarks = results.multiHandLandmarks[0]; // فقط دست اول
+            }
+        });
+
+        // گرفتن تصویر دوربین و ارسال به Mediapipe
+        async function startHandTracking() {
+            const video = document.createElement("video");
+            video.setAttribute("autoplay", "");
+            video.setAttribute("playsinline", "");
+
+            // گرفتن استریم دوربین
+            navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                video.srcObject = stream;
+                video.play();
+                const camera = new Camera(video, {
+                    onFrame: async () => {
+                        await hands.send({ image: video });
+                    },
+                    width: 640,
+                    height: 480
+                });
+                camera.start();
+            });
+        }
+
+        // تابع برای به‌روزرسانی موقعیت حلقه
+        function updateRingPosition() {
+            if (handLandmarks) {
+                // مختصات انگشت حلقه (landmark شماره 16 در Mediapipe)
+                let ringFinger = handLandmarks[16];
+
+                // تبدیل مختصات به موقعیت A-Frame
+                let x = (ringFinger.x - 0.5) * 2; // نرمال‌سازی موقعیت
+                let y = (-ringFinger.y + 0.5) * 2;
+                let z = -ringFinger.z * 2;
+
+                // تنظیم موقعیت حلقه در A-Frame
+                let ring = document.getElementById("ring");
+                ring.setAttribute("position", `${x} ${y} ${z}`);
+            }
+
+            requestAnimationFrame(updateRingPosition);
+        }
+
+        window.onload = () => {
+            startHandTracking();
+            updateRingPosition();
+        };
+    </script>
 </head>
 <body>
     <a-scene zappar-instant>
         <!-- فعال‌سازی دوربین WebAR -->
         <a-entity zappar-camera></a-entity>
-        
-        <!-- نمایش یک مکعب در فضای AR -->
-        <a-box position="0 0 -2" rotation="0 45 0" color="blue"></a-box>
+
+        <!-- نورپردازی -->
+        <a-light type="directional" position="2 4 3" intensity="1.5" color="#ffffff"></a-light>
+        <a-light type="ambient" intensity="0.7" color="#cccccc"></a-light>
+
+        <!-- مدل حلقه که روی انگشت قرار می‌گیرد -->
+        <a-entity 
+            id="ring"
+            gltf-model="https://modelviewer.dev/shared-assets/models/DiamondRing.glb"
+            scale="0.05 0.05 0.05"
+            rotation="0 180 0"
+        ></a-entity>
+
+        <!-- پس‌زمینه -->
+        <a-sky color="#ECECEC"></a-sky>
     </a-scene>
 </body>
 </html>

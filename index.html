@@ -3,52 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ring on Finger - Hand Tracking</title>
+    <title>Ring on Finger - No Landmarks</title>
     
     <!-- Mediapipe -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
 
-    <!-- A-Frame برای نمایش مدل سه‌بعدی -->
+    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
 
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        video, canvas { position: absolute; left: 50%; transform: translateX(-50%); }
-        canvas { z-index: 1; }
+        body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
+        video { display: none; } /* مخفی کردن ویدیو */
+        canvas { display: none; } /* مخفی کردن نقاط Mediapipe */
     </style>
 </head>
 <body>
-    <h1>Ring Tracking on Finger 💍</h1>
+    <h1>Ring on Finger 💍</h1>
     <p>Move your hand in front of the camera!</p>
 
     <!-- ویدیو برای ورودی دوربین -->
     <video id="videoInput" autoplay playsinline></video>
-    <!-- نمایش نتایج پردازش روی این Canvas -->
-    <canvas id="outputCanvas"></canvas>
-
-    <!-- صحنه سه‌بعدی A-Frame -->
-    <a-scene embedded>
+    <!-- نمایش سه‌بعدی حلقه -->
+    <a-scene embedded arjs>
         <a-camera position="0 0 5"></a-camera>
 
-        <!-- مدل حلقه (ابتدا در نقطه 0,0,0 قرار دارد و بعداً روی انگشت حرکت می‌کند) -->
+        <!-- مدل حلقه که روی انگشت حلقه قرار می‌گیرد -->
         <a-entity 
             id="ring"
             gltf-model="https://modelviewer.dev/shared-assets/models/DiamondRing.glb"
-            scale="0.1 0.1 0.1"
-            position="0 0 0"
+            scale="0.08 0.08 0.08"
+            position="0 0 -3"
             rotation="0 90 0">
         </a-entity>
     </a-scene>
 
     <script>
         const videoElement = document.getElementById('videoInput');
-        const canvasElement = document.getElementById('outputCanvas');
-        const canvasCtx = canvasElement.getContext('2d');
         const ringModel = document.getElementById("ring");
 
-        // راه‌اندازی Mediapipe Hands
+        // فعال کردن Mediapipe Hands
         const hands = new Hands({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
         });
@@ -56,37 +50,33 @@
         hands.setOptions({
             maxNumHands: 1,
             modelComplexity: 1,
-            minDetectionConfidence: 0.7,
-            minTrackingConfidence: 0.7
+            minDetectionConfidence: 0.8,
+            minTrackingConfidence: 0.8
         });
 
         hands.onResults((results) => {
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-
             if (results.multiHandLandmarks.length > 0) {
                 const landmarks = results.multiHandLandmarks[0];
 
-                // **تشخیص انگشت حلقه (Mediapipe Index 16)**
+                // دریافت مختصات انگشت حلقه (Mediapipe Index 16)
                 const ringFingerTip = landmarks[16];
 
-                // نرمال‌سازی مختصات برای A-Frame
-                let x = (ringFingerTip.x - 0.5) * 2;
-                let y = (-ringFingerTip.y + 0.5) * 2;
-                let z = -ringFingerTip.z * 2;
+                // تبدیل مختصات Mediapipe به مختصات A-Frame
+                let scaleFactor = 1.5; // مقیاس کلی برای هماهنگی
+                let x = (ringFingerTip.x - 0.5) * scaleFactor;
+                let y = (-ringFingerTip.y + 0.5) * scaleFactor;
+                let z = -ringFingerTip.z * 3;
 
-                // تنظیم موقعیت حلقه روی انگشت
+                // تنظیم موقعیت حلقه
                 ringModel.setAttribute("position", `${x} ${y} ${z}`);
-
-                // رسم نقاط انگشتان روی ویدیو
-                drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, { color: '#00FF00', lineWidth: 2 });
-                drawLandmarks(canvasCtx, landmarks, { color: '#FF0000', radius: 4 });
             }
         });
 
-        // دریافت استریم دوربین و ارسال به Mediapipe
+        // فعال کردن دوربین پشتی
         async function startHandTracking() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" }  
+            });
             videoElement.srcObject = stream;
 
             const camera = new Camera(videoElement, {
@@ -98,12 +88,6 @@
             });
             camera.start();
         }
-
-        // تنظیم اندازه Canvas با اندازه ویدیو
-        videoElement.onloadedmetadata = () => {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-        };
 
         startHandTracking();
     </script>

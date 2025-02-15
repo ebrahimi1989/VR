@@ -3,21 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Viewer - Ring 💍</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <title>Ring on Finger - Hand Tracking 💍</title>
+
+    <!-- Mediapipe -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+
+    <!-- A-Frame -->
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
+        video { display: none; } /* مخفی کردن ویدیو */
+    </style>
 </head>
 <body>
-    <h1>3D Ring Model Test 💍</h1>
-    <p>If you see the ring, the model is loading correctly.</p>
+    <h1>Ring Tracking on Finger 💍</h1>
+    <p>Move your hand in front of the camera!</p>
 
-    <!-- نمایش مدل سه‌بعدی -->
-    <model-viewer 
-        src="jewelery_ring_diamonds.glb"
-        alt="3D Model of a Ring"
-        auto-rotate
-        camera-controls
-        style="width: 100%; height: 500px;">
-    </model-viewer>
+    <!-- ویدیو برای ورودی دوربین -->
+    <video id="videoInput" autoplay playsinline></video>
 
+    <!-- نمایش سه‌بعدی حلقه -->
+    <a-scene embedded>
+        <a-camera position="0 0 5"></a-camera>
+
+        <!-- مدل حلقه که روی انگشت حلقه قرار می‌گیرد -->
+        <a-entity 
+            id="ring"
+            gltf-model="jewelery_ring_diamonds.glb"
+            scale="0.08 0.08 0.08"
+            position="0 0 -3"
+            rotation="0 90 0">
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const videoElement = document.getElementById('videoInput');
+        const ringModel = document.getElementById("ring");
+
+        // فعال کردن Mediapipe Hands
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.8,
+            minTrackingConfidence: 0.8
+        });
+
+        hands.onResults((results) => {
+            if (results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+
+                // دریافت مختصات انگشت حلقه (Mediapipe Index 16)
+                const ringFingerTip = landmarks[16];
+
+                // تبدیل مختصات Mediapipe به مختصات A-Frame
+                let scaleFactor = 2; // مقیاس کلی برای هماهنگی
+                let x = (ringFingerTip.x - 0.5) * scaleFactor;
+                let y = (-ringFingerTip.y + 0.5) * scaleFactor;
+                let z = -ringFingerTip.z * 3;
+
+                // تنظیم موقعیت حلقه
+                ringModel.setAttribute("position", `${x} ${y} ${z}`);
+            }
+        });
+
+        // فعال کردن دوربین پشتی
+        async function startHandTracking() {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" }  // استفاده از دوربین پشت
+            });
+            videoElement.srcObject = stream;
+
+            const camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({ image: videoElement });
+                },
+                width: 640,
+                height: 480
+            });
+            camera.start();
+        }
+
+        startHandTracking();
+    </script>
 </body>
 </html>

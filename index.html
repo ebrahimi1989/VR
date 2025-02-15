@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model Test 💍</title>
+    <title>3D Ring Model Test 💍</title>
 
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <h1>3D Model Test 💍</h1>
+    <h1>3D Model Test - Ring 💍</h1>
     <p>If you see the ring, the model is loading correctly.</p>
 
     <!-- صحنه سه‌بعدی A-Frame -->
@@ -22,17 +22,16 @@
         <a-light type="directional" position="1 1 1" intensity="1"></a-light>
         <a-light type="ambient" intensity="0.5"></a-light>
 
-        <!-- دوربین ثابت -->
+        <!-- دوربین -->
         <a-camera position="0 1.5 5"></a-camera>
 
-        <!-- مدل حلقه -->
+        <!-- مدل حلقه (بارگیری از فایل لوکال) -->
         <a-entity 
-            gltf-model="https://modelviewer.dev/shared-assets/models/DiamondRing.glb"
+            gltf-model="jewelery_ring_diamonds.glb"
             scale="0.1 0.1 0.1"
             position="0 1 -3"
             rotation="0 180 0">
         </a-entity>
     </a-scene>
-
 </body>
 </html>

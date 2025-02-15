@@ -3,35 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model + Back Camera 📷💍</title>
-
-    <!-- A-Frame -->
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <title>Ring on Camera - Optimized 💍</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
+        body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; margin: 0; }
         video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
+        model-viewer { width: 100%; height: 100vh; }
     </style>
 </head>
 <body>
-    <h1>3D Model + Back Camera 💍</h1>
-    <p>Move your phone to see the model overlaid on the camera view.</p>
+    <h1>3D Ring Model on Back Camera 💍</h1>
+    <p>Move your phone to see the ring over the camera feed.</p>
 
     <!-- نمایش دوربین -->
     <video id="videoElement" autoplay playsinline></video>
 
-    <!-- صحنه سه‌بعدی A-Frame -->
-    <a-scene embedded>
-        <a-camera position="0 0 5"></a-camera>
-
-        <!-- مدل حلقه -->
-        <a-entity 
-            gltf-model="jewelery_ring_diamonds.glb"
-            scale="0.1 0.1 0.1"
-            position="0 0 -3"
-            rotation="0 180 0">
-        </a-entity>
-    </a-scene>
+    <!-- نمایش مدل سه‌بعدی -->
+    <model-viewer 
+        src="jewelery_ring_diamonds.glb"
+        alt="3D Model of a Ring"
+        auto-rotate
+        camera-controls>
+    </model-viewer>
 
     <script>
         async function startCamera() {

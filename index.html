@@ -3,22 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Camera + Ring Model 💍</title>
+    <title>3D Model Test 💍</title>
 
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
 
     <style>
         body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
-        video { width: 100%; height: auto; max-width: 800px; border: 2px solid white; }
     </style>
 </head>
 <body>
-    <h1>Camera + 3D Ring 💍</h1>
-    <p>If you see the camera feed and the ring, it's working!</p>
-
-    <!-- نمایش ویدیوی دوربین -->
-    <video id="videoElement" autoplay playsinline></video>
+    <h1>3D Model Test 💍</h1>
+    <p>If you see the ring, the model is loading correctly.</p>
 
     <!-- صحنه سه‌بعدی A-Frame -->
     <a-scene embedded>
@@ -26,29 +22,17 @@
         <a-light type="directional" position="1 1 1" intensity="1"></a-light>
         <a-light type="ambient" intensity="0.5"></a-light>
 
-        <!-- دوربین -->
+        <!-- دوربین ثابت -->
         <a-camera position="0 1.5 5"></a-camera>
 
         <!-- مدل حلقه -->
         <a-entity 
-            gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf"
-            scale="1 1 1"
+            gltf-model="https://modelviewer.dev/shared-assets/models/DiamondRing.glb"
+            scale="0.1 0.1 0.1"
             position="0 1 -3"
             rotation="0 180 0">
         </a-entity>
     </a-scene>
 
-    <script>
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-                document.getElementById("videoElement").srcObject = stream;
-            } catch (error) {
-                alert("Error accessing camera: " + error);
-            }
-        }
-
-        startCamera();
-    </script>
 </body>
 </html>

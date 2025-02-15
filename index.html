@@ -3,35 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Ring Model Test 💍</title>
-
-    <!-- A-Frame -->
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-
-    <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; }
-    </style>
+    <title>3D Model Viewer - Ring 💍</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
-    <h1>3D Model Test - Ring 💍</h1>
+    <h1>3D Ring Model Test 💍</h1>
     <p>If you see the ring, the model is loading correctly.</p>
 
-    <!-- صحنه سه‌بعدی A-Frame -->
-    <a-scene embedded>
-        <!-- نورپردازی -->
-        <a-light type="directional" position="1 1 1" intensity="1"></a-light>
-        <a-light type="ambient" intensity="0.5"></a-light>
+    <!-- نمایش مدل سه‌بعدی -->
+    <model-viewer 
+        src="jewelery_ring_diamonds.glb"
+        alt="3D Model of a Ring"
+        auto-rotate
+        camera-controls
+        style="width: 100%; height: 500px;">
+    </model-viewer>
 
-        <!-- دوربین -->
-        <a-camera position="0 1.5 5"></a-camera>
-
-        <!-- مدل حلقه (بارگیری از فایل لوکال) -->
-        <a-entity 
-            gltf-model="jewelery_ring_diamonds.glb"
-            scale="0.1 0.1 0.1"
-            position="0 1 -3"
-            rotation="0 180 0">
-        </a-entity>
-    </a-scene>
 </body>
 </html>

@@ -1,46 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>11Ring on Camera - Optimized 💍</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-    <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; margin: 0; }
-        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
-        model-viewer { width: 100%; height: 100vh; z-index: 1; position: absolute; top: 0; left: 0; }
-    </style>
-</head>
-<body>
-    <h1>3D Ring Model on Back Camera 💍</h1>
-    <p>Move your phone to see the ring over the camera feed.</p>
-
-    <!-- نمایش دوربین -->
-    <video id="videoElement" autoplay playsinline></video>
-
-    <!-- نمایش مدل سه‌بعدی -->
-    <model-viewer 
-        src="jewelery_ring_diamonds_compressed.glb"
-        alt="3D Model of a Ring"
-        auto-rotate
-        camera-controls
-        background-color="black">
-    </model-viewer>
-
-    <script>
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" }  // فعال کردن دوربین پشت
-                });
-                document.getElementById("videoElement").srcObject = stream;
-            } catch (error) {
-                console.error("Error accessing camera: ", error);
-                alert("Camera access error: " + error.message);
-            }
-        }
-
-        startCamera();
-    </script>
-</body>
+<html>
+  <head>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/jeromeetienne/ar.js/aframe/build/aframe-ar.min.js"></script>
+  </head>
+  <body style="margin: 0; overflow: hidden;">
+    <a-scene embedded arjs>
+      <!-- دوربین AR -->
+      <a-marker preset="hiro">
+        <!-- مدل سه‌بعدی (GLTF) -->
+        <a-entity 
+          gltf-model="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+          scale="0.5 0.5 0.5"
+          position="0 0 0">
+        </a-entity>
+      </a-marker>
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
 </html>

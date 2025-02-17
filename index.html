@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ring on Camera - Optimized 💍</title>
+    <title>11Ring on Camera - Optimized 💍</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-
     <style>
         body { text-align: center; font-family: Arial, sans-serif; background: black; color: white; margin: 0; }
-        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; }
-        model-viewer { width: 100%; height: 100vh; }
+        video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+        model-viewer { width: 100%; height: 100vh; z-index: 1; position: absolute; top: 0; left: 0; }
     </style>
 </head>
 <body>
@@ -21,12 +20,12 @@
 
     <!-- نمایش مدل سه‌بعدی -->
     <model-viewer 
-    src="jewelery_ring_diamonds_compressed.glb"
-    alt="3D Model of a Ring"
-    auto-rotate
-    camera-controls>
+        src="jewelery_ring_diamonds_compressed.glb"
+        alt="3D Model of a Ring"
+        auto-rotate
+        camera-controls
+        background-color="black">
     </model-viewer>
-
 
     <script>
         async function startCamera() {

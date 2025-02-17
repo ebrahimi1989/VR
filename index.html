@@ -3,21 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebAR Jewelry</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer"></script>
+    <title>3D Model with Camera Background</title>
     <style>
-        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f3f3f3; }
-        model-viewer { width: 100%; height: 100vh; }
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
     </style>
 </head>
 <body>
-    <model-viewer 
-        src="jewelery_ring_diamonds_compressed.glb" 
-        ar 
-        ar-modes="webxr scene-viewer quick-look" 
-        camera-controls 
-        poster="poster.jpg"
-        shadow-intensity="1">
-    </model-viewer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r146/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script>
+        // تنظیمات Three.js
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // اضافه کردن نور به صحنه
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 5, 5).normalize();
+        scene.add(light);
+
+        // بارگذاری مدل سه‌بعدی
+        const loader = new THREE.GLTFLoader();
+        loader.load(
+            'path/to/your-model.glb', // مسیر فایل مدل شما
+            (gltf) => {
+                const model = gltf.scene;
+                scene.add(model);
+            },
+            undefined,
+            (error) => {
+                console.error('Error loading model:', error);
+            }
+        );
+
+        // تنظیم دوربین Three.js
+        camera.position.z = 5;
+
+        // تنظیمات دوربین گوشی
+        const videoElement = document.createElement('video');
+        videoElement.autoplay = true;
+        videoElement.playsInline = true;
+
+        const texture = new THREE.VideoTexture(videoElement);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.format = THREE.RGBFormat;
+
+        const backgroundGeometry = new THREE.PlaneGeometry(2, 2);
+        const backgroundMaterial = new THREE.MeshBasicMaterial({ map: texture });
+        const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+        backgroundMesh.position.z = -10; // تنظیم موقعیت پس‌زمینه
+        scene.add(backgroundMesh);
+
+        // راه‌اندازی دوربین گوشی
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement.srcObject = stream;
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Camera access error: ' + error.message);
+            }
+        }
+
+        startCamera();
+
+        // انیمیشن و رندر صحنه
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // تنظیم اندازه صفحه هنگام تغییر سایز پنجره
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
 </html>

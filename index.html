@@ -4,28 +4,26 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>WebAR Ring Demo</title>
-    <!-- اضافه کردن A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <!-- اضافه کردن AR.js برای پشتیبانی از WebAR -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 </head>
 <body>
-    <!-- صحنه A-Frame -->
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <!-- لود کردن مدل GLB -->
-        <a-asset>
+        <a-assets>
             <a-asset-item id="ring-model" src="jewelery_ring_diamonds_compressed.glb"></a-asset-item>
-        </a-asset>
+        </a-assets>
 
-        <!-- اضافه کردن مدل به صحنه -->
+        <!-- مدل GLB -->
         <a-entity
             gltf-model="#ring-model"
-            position="0 0 -2" <!-- موقعیت مدل جلوی دوربین -->
-            scale="0.1 0.1 0.1" <!-- اندازه مدل رو تنظیم کن -->
+            position="0 0 -1"
+            scale="1 1 1"
             rotation="0 0 0">
         </a-entity>
 
-        <!-- دوربین -->
+        <!-- مکعب تست -->
+        <a-box position="0 0 -1" scale="0.5 0.5 0.5" color="red"></a-box>
+
         <a-camera></a-camera>
     </a-scene>
 </body>

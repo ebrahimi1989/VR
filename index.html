@@ -1,89 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Model with Camera Background</title>
-    <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-    </style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WebAR Ring Demo</title>
+    <!-- اضافه کردن A-Frame -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- اضافه کردن AR.js برای پشتیبانی از WebAR -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 </head>
 <body>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r146/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-    <script>
-        // تنظیمات Three.js
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+    <!-- صحنه A-Frame -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+        <!-- لود کردن مدل GLB -->
+        <a-asset>
+            <a-asset-item id="ring-model" src="jewelery_ring_diamonds_compressed.glb"></a-asset-item>
+        </a-asset>
 
-        // اضافه کردن نور به صحنه
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(5, 5, 5).normalize();
-        scene.add(light);
+        <!-- اضافه کردن مدل به صحنه -->
+        <a-entity
+            gltf-model="#ring-model"
+            position="0 0 -2" <!-- موقعیت مدل جلوی دوربین -->
+            scale="0.1 0.1 0.1" <!-- اندازه مدل رو تنظیم کن -->
+            rotation="0 0 0">
+        </a-entity>
 
-        // بارگذاری مدل سه‌بعدی
-        const loader = new THREE.GLTFLoader();
-        loader.load(
-            'path/to/your-model.glb', // مسیر فایل مدل شما
-            (gltf) => {
-                const model = gltf.scene;
-                scene.add(model);
-            },
-            undefined,
-            (error) => {
-                console.error('Error loading model:', error);
-            }
-        );
-
-        // تنظیم دوربین Three.js
-        camera.position.z = 5;
-
-        // تنظیمات دوربین گوشی
-        const videoElement = document.createElement('video');
-        videoElement.autoplay = true;
-        videoElement.playsInline = true;
-
-        const texture = new THREE.VideoTexture(videoElement);
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.format = THREE.RGBFormat;
-
-        const backgroundGeometry = new THREE.PlaneGeometry(2, 2);
-        const backgroundMaterial = new THREE.MeshBasicMaterial({ map: texture });
-        const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
-        backgroundMesh.position.z = -10; // تنظیم موقعیت پس‌زمینه
-        scene.add(backgroundMesh);
-
-        // راه‌اندازی دوربین گوشی
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                videoElement.srcObject = stream;
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                alert('Camera access error: ' + error.message);
-            }
-        }
-
-        startCamera();
-
-        // انیمیشن و رندر صحنه
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // تنظیم اندازه صفحه هنگام تغییر سایز پنجره
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+        <!-- دوربین -->
+        <a-camera></a-camera>
+    </a-scene>
 </body>
 </html>

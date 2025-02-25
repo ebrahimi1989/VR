@@ -3,76 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>انگشتر روی انگشت </title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <title>تست تشخیص دست</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
 </head>
 <body>
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <!-- مدل انگشتر -->
-        <a-entity 
-            id="ring" 
-            gltf-model="url(./jewelery_ring_diamonds.glb)" 
-            scale="0.001 0.001 0.001">
-        </a-entity>
-
-        <!-- دوربین -->
-        <a-entity camera></a-entity>
-    </a-scene>
-
-    <canvas id="debugCanvas" style="position: absolute; top: 0; left: 0;"></canvas>
+    <video id="video" style="position: absolute; top: 0; left: 0;"></video>
+    <canvas id="canvas" style="position: absolute; top: 0; left: 0;"></canvas>
 
     <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
         // تنظیمات MediaPipe Hands
         const hands = new Hands({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`
         });
         hands.setOptions({
-            maxNumHands: 1, // فقط یه دست تشخیص بده
+            maxNumHands: 1,
             modelComplexity: 1,
-            minDetectionConfidence: 0.7, // دقت بالاتر برای تشخیص
-            minTrackingConfidence: 0.7 // دقت بالاتر برای ردیابی
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.7
         });
 
-        // وقتی دست تشخیص داده شد
         hands.onResults((results) => {
-            const canvas = document.getElementById('debugCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                const landmarks = results.multiHandLandmarks[0];
-                // نقطه 13 (پایه انگشت حلقه)
-                const ringFingerBase = landmarks[13];
-                const x = (ringFingerBase.x - 0.5) * 2; // تنظیم مختصات
-                const y = -(ringFingerBase.y - 0.5) * 2;
-                const z = -0.3; // فاصله از دوربین
-
-                // آپدیت موقعیت انگشتر
-                const ring = document.querySelector('#ring');
-                ring.setAttribute('position', `${x} ${y} ${z}`);
-
-                // دیباگ: نقاط دست رو نشون بده
-                for (const lm of landmarks) {
-                    const cx = lm.x * canvas.width;
-                    const cy = lm.y * canvas.height;
-                    ctx.beginPath();
-                    ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
-                    ctx.fillStyle = 'red';
-                    ctx.fill();
+            if (results.multiHandLandmarks) {
+                for (const landmarks of results.multiHandLandmarks) {
+                    for (const lm of landmarks) {
+                        const x = lm.x * canvas.width;
+                        const y = lm.y * canvas.height;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                        ctx.fillStyle = 'red';
+                        ctx.fill();
+                    }
                 }
             }
         });
 
         // فعال کردن وب‌کم
-        const videoElement = document.createElement('video');
         navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-            videoElement.srcObject = stream;
-            videoElement.play();
-            setInterval(() => hands.send({ image: videoElement }), 100);
+            video.srcObject = stream;
+            video.play();
+            video.onloadedmetadata = () => {
+                setInterval(() => hands.send({ image: video }), 100);
+            };
         });
     </script>
 </body>

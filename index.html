@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نمایش مدل انگشتر</title>
+    <title>تست مدل ساده</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 </head>
 <body>
-    <a-scene embedded>
-        <!-- مدل حلقه -->
-        <a-entity 
-            torus="radius: 0.05; radiusTubular: 0.005" 
-            color="#FFD700" 
-            position="0 0 -1" 
-            scale="0.5 0.5 0.5"
-            animation="property: rotation; to: 0 360 0; loop: true; dur: 5000">
-        </a-entity>
+    <a-scene>
+        <!-- یه کره ساده -->
+        <a-sphere 
+            color="red" 
+            radius="0.5" 
+            position="0 1 -2">
+        </a-sphere>
 
         <!-- دوربین -->
         <a-entity camera look-controls></a-entity>

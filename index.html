@@ -8,18 +8,30 @@
 </head>
 <body>
     <a-scene>
+        <!-- پس‌زمینه آسمان -->
+        <a-sky color="#87CEEB"></a-sky>
+
+        <!-- کف زمین ساده -->
+        <a-plane 
+            position="0 0 -2" 
+            rotation="-90 0 0" 
+            width="4" 
+            height="4" 
+            color="#7BC8A4">
+        </a-plane>
+
         <!-- مدل انگشتر (حلقه) -->
         <a-torus 
             radius="0.05" 
             radius-tubular="0.005" 
             color="#FFD700" 
-            position="0 1 -2" 
+            position="0 0.5 -0.5" 
             scale="0.5 0.5 0.5"
             animation="property: rotation; to: 0 360 0; loop: true; dur: 5000">
         </a-torus>
 
         <!-- دوربین -->
-        <a-entity camera look-controls></a-entity>
+        <a-entity camera look-controls position="0 1.6 0"></a-entity>
     </a-scene>
 </body>
 </html>

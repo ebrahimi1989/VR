@@ -1,31 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="fa">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>۲۲WebAR Ring Demo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمایش انگشتر با AR</title>
+    <!-- بارگذاری A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <!-- کامپوننت AR.js برای پشتیبانی از AR -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 </head>
 <body>
-    <a-scene embedded vr-mode-ui="enabled: false" arjs="sourceType: webcam; debugUIEnabled: false;">
-        <a-assets>
-            <a-asset-item id="ring-model" src="jewelery_ring_diamonds_compressed.glb"></a-asset-item>
-        </a-assets>
-
-        <!-- مدل GLB -->
-        <a-entity
-            gltf-model="#ring-model"
-            position="0 0 -1"
-            scale="1 1 1"
-            rotation="0 0 0">
-        </a-entity>
-
-        <!-- مکعب تست -->
-        <a-box position="0 0.5 -1" scale="0.5 0.5 0.5" color="red"></a-box>
+    <!-- صحنه A-Frame -->
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+        <!-- نشانگر برای تشخیص موقعیت (مثلاً دست) -->
+        <a-marker preset="hiro">
+            <!-- مدل سه‌بعدی انگشتر -->
+            <a-entity
+                gltf-model="url(./jewelery_ring_diamonds_compressed.glb)" <!-- آدرس فایل مدلت رو اینجا بذار -->
+                scale="0.1 0.1 0.1" <!-- اندازه مدل -->
+                position="0 0 0" <!-- موقعیت مدل -->
+                rotation="0 0 0"> <!-- چرخش مدل -->
+            </a-entity>
+        </a-marker>
 
         <!-- دوربین -->
-        <a-camera position="0 0 0"></a-camera>
+        <a-entity camera></a-entity>
     </a-scene>
 </body>
 </html>

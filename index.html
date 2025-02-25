@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>انگشتر روی انگشت با MediaPipe</title>
+    <title>انگشتر روی انگشت </title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"></script>
@@ -14,37 +14,56 @@
         <a-entity 
             id="ring" 
             gltf-model="url(./jewelery_ring_diamonds.glb)" 
-            scale="0.001 0.001 0.001"
-            animation="property: rotation; to: 0 360 0; loop: true; dur: 5000">
+            scale="0.001 0.001 0.001">
         </a-entity>
 
         <!-- دوربین -->
         <a-entity camera></a-entity>
     </a-scene>
 
+    <canvas id="debugCanvas" style="position: absolute; top: 0; left: 0;"></canvas>
+
     <script>
+        // تنظیمات MediaPipe Hands
         const hands = new Hands({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`
         });
         hands.setOptions({
-            maxNumHands: 1,
+            maxNumHands: 1, // فقط یه دست تشخیص بده
             modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
+            minDetectionConfidence: 0.7, // دقت بالاتر برای تشخیص
+            minTrackingConfidence: 0.7 // دقت بالاتر برای ردیابی
         });
 
+        // وقتی دست تشخیص داده شد
         hands.onResults((results) => {
+            const canvas = document.getElementById('debugCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const landmarks = results.multiHandLandmarks[0];
                 // نقطه 13 (پایه انگشت حلقه)
                 const ringFingerBase = landmarks[13];
-                const x = (ringFingerBase.x - 0.5) * 2; // تنظیم مختصات به فضای A-Frame
+                const x = (ringFingerBase.x - 0.5) * 2; // تنظیم مختصات
                 const y = -(ringFingerBase.y - 0.5) * 2;
-                const z = -ringFingerBase.z - 0.3; // فاصله از دوربین
+                const z = -0.3; // فاصله از دوربین
 
                 // آپدیت موقعیت انگشتر
                 const ring = document.querySelector('#ring');
                 ring.setAttribute('position', `${x} ${y} ${z}`);
+
+                // دیباگ: نقاط دست رو نشون بده
+                for (const lm of landmarks) {
+                    const cx = lm.x * canvas.width;
+                    const cy = lm.y * canvas.height;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+                    ctx.fillStyle = 'red';
+                    ctx.fill();
+                }
             }
         });
 

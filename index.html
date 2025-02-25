@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نمایش انگشتر با AR</title>
-    <!-- بارگذاری A-Frame -->
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <!-- کامپوننت AR.js برای پشتیبانی از AR -->
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 </head>
 <body>
-    <!-- صحنه A-Frame -->
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <!-- نشانگر برای تشخیص موقعیت (مثلاً دست) -->
+        <!-- مارکر برای AR -->
         <a-marker preset="hiro">
-            <!-- مدل سه‌بعدی انگشتر -->
-            <a-entity
-                gltf-model="url(./jewelery_ring_diamonds_compressed.glb)" <!-- آدرس فایل مدلت رو اینجا بذار -->
-                scale="0.1 0.1 0.1" <!-- اندازه مدل -->
-                position="0 0 0" <!-- موقعیت مدل -->
-                rotation="0 0 0"> <!-- چرخش مدل -->
-            </a-entity>
+            <!-- یه حلقه ساده به جای مدل GLB -->
+            <a-torus 
+                radius="0.05" 
+                radius-tubular="0.005" 
+                color="#FFD700" 
+                position="0 0 0" 
+                scale="0.5 0.5 0.5">
+            </a-torus>
         </a-marker>
+
+        <!-- برای تست بدون مارکر یا تو PC -->
+        <a-entity 
+            torus="radius: 0.05; radiusTubular: 0.005" 
+            color="#FFD700" 
+            position="0 1 -2" 
+            scale="0.5 0.5 0.5">
+        </a-entity>
 
         <!-- دوربین -->
         <a-entity camera></a-entity>

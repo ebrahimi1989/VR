@@ -3,14 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تست تشخیص دست</title>
+    <title>تست تشخیص دست با انگشتر 3D</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         body {
             margin: 0;
             overflow: hidden;
         }
-        #video, #canvas {
+        #video {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #renderer {
             width: 100%;
             height: 100%;
             position: absolute;
@@ -21,12 +30,34 @@
 </head>
 <body>
     <video id="video" autoplay playsinline></video>
-    <canvas id="canvas"></canvas>
+    <div id="renderer"></div>
 
     <script>
         const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const rendererContainer = document.getElementById('renderer');
+
+        // تنظیم Three.js
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        rendererContainer.appendChild(renderer.domElement);
+
+        // نور محیط
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        // لودر GLTF
+        const loader = new THREE.GLTFLoader();
+        let ringModel;
+        loader.load('ring.glb', (gltf) => {
+            ringModel = gltf.scene;
+            ringModel.scale.set(0.05, 0.05, 0.05); // تنظیم اندازه مدل (بسته به مدلت تغییر بده)
+            scene.add(ringModel);
+            console.log("Ring model loaded");
+        }, undefined, (error) => {
+            console.error("Error loading ring.glb:", error);
+        });
 
         // تنظیمات MediaPipe Hands
         const hands = new Hands({
@@ -40,54 +71,47 @@
         });
 
         hands.onResults((results) => {
-            // تنظیم اندازه‌های canvas
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (results.multiHandLandmarks && ringModel) {
+                const landmarks = results.multiHandLandmarks[0];
+                const ringFinger = landmarks[13]; // RING_FINGER_MCP
 
-            // دیباگ: چک کن که نتایج میاد یا نه
-            console.log("Results:", results);
+                if (ringFinger) {
+                    // تبدیل مختصات 2D به 3D
+                    const x = (ringFinger.x - 0.5) * 2; // نرمالایز به [-1, 1]
+                    const y = -(ringFinger.y - 0.5) * 2; // معکوس Y چون Three.js برعکسه
+                    const z = ringFinger.z * 10; // عمق (بسته به نیاز تنظیم کن)
 
-            if (results.multiHandLandmarks) {
-                for (const landmarks of results.multiHandLandmarks) {
-                    for (const lm of landmarks) {
-                        const x = lm.x * canvas.width;
-                        const y = lm.y * canvas.height;
-                        ctx.beginPath();
-                        ctx.arc(x, y, 5, 0, 2 * Math.PI);
-                        ctx.fillStyle = 'red';
-                        ctx.fill();
-                    }
+                    ringModel.position.set(x, y, z);
                 }
-            } else {
-                console.log("No hands detected");
             }
         });
 
         // فعال کردن وب‌کم
         navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: "user" } // دوربین جلو
+            video: { facingMode: "user" }
         }).then((stream) => {
             video.srcObject = stream;
             video.onloadedmetadata = () => {
                 video.play();
-                // تنظیم اندازه اولیه
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                // ارسال فریم‌ها به MediaPipe
-                async function processFrame() {
-                    await hands.send({ image: video });
-                    requestAnimationFrame(processFrame); // به‌جای setInterval
-                }
-                processFrame();
+                camera.position.z = 1; // تنظیم موقعیت دوربین
+                animate();
             };
         }).catch((err) => {
             console.error("Error accessing camera:", err);
         });
 
-        // دیباگ اندازه‌ها
-        video.addEventListener('play', () => {
-            console.log("Video size:", video.videoWidth, video.videoHeight);
+        // حلقه انیمیشن
+        function animate() {
+            hands.send({ image: video });
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        // تنظیم مجدد اندازه با تغییر پنجره
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>

@@ -2,40 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hand Tracking with MediaPipe</title>
+  <title>۱۱۱۱۱ Tracking with MediaPipe</title>
   <style>
-    canvas { border: 1px solid black; }
     video { width: 640px; height: 480px; border: 1px solid blue; }
+    canvas { border: 1px solid black; }
     body { display: flex; flex-direction: column; align-items: center; }
   </style>
 </head>
 <body>
-  <h3>ببب Tracking Test</h3>
+  <h3>Hand Tracking Test</h3>
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas" width="640" height="480"></canvas>
 
-  <!-- بارگذاری اسکریپت MediaPipe Hands -->
-  <script src="./hands.js"></script>
+  <!-- بارگذاری از CDN برای اطمینان -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
   <script>
-    // دسترسی به المان‌ها
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // تابع برای لاگ کردن
-    function log(message) {
-      console.log(`[Hand Tracking] ${message}`);
-    }
-
-    // تنظیمات Hands
+    // استفاده از CDN برای فایل‌ها
     const hands = new Hands({
       locateFile: (file) => {
-        log(`Trying to load file: ${file}`);
-        return `./${file}`; // مسیر فایل‌ها رو چک کنید
+        console.log(`Loading: ${file}`);
+        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${file}`;
       }
     });
 
-    // تنظیم گزینه‌ها
     hands.setOptions({
       maxNumHands: 2,
       modelComplexity: 1,
@@ -43,14 +36,13 @@
       minTrackingConfidence: 0.5
     });
 
-    // مدیریت نتایج
     hands.onResults((results) => {
-      log("Received results from Hands");
+      console.log("Results received");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       if (results.multiHandLandmarks) {
-        log(`Detected ${results.multiHandLandmarks.length} hands`);
+        console.log(`Detected ${results.multiHandLandmarks.length} hands`);
         for (const landmarks of results.multiHandLandmarks) {
           for (const point of landmarks) {
             const x = point.x * canvas.width;
@@ -61,58 +53,39 @@
             ctx.fill();
           }
         }
-      } else {
-        log("No hands detected");
       }
     });
 
-    // تابع شروع دوربین
     async function startCamera() {
-      log("Requesting camera access...");
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
-        log("Camera stream obtained");
-        return new Promise((resolve) => {
-          video.onloadedmetadata = () => {
-            log("Video metadata loaded, playing...");
-            video.play();
-            resolve();
-          };
-        });
+        video.onloadedmetadata = () => {
+          video.play();
+          console.log("Camera started");
+        };
       } catch (e) {
-        console.error("Camera access failed:", e);
-        alert("Cannot access camera. Check permissions or device availability.");
+        console.error("Camera error:", e);
+        alert("Camera failed: " + e.message);
       }
     }
 
-    // تابع انیمیشن
     async function animate() {
-      try {
-        await hands.send({ image: video });
-        log("Frame processed");
-      } catch (e) {
-        console.error("Error processing frame:", e);
-      }
+      await hands.send({ image: video });
       requestAnimationFrame(animate);
     }
 
-    // شروع برنامه
     (async () => {
-      log("Starting application...");
+      console.log("Starting...");
       try {
-        log("Initializing Hands...");
         await hands.initialize();
-        log("Hands initialized successfully");
-
-        log("Starting camera...");
+        console.log("Hands initialized");
         await startCamera();
-
-        log("Starting animation loop...");
+        console.log("Starting animation...");
         animate();
       } catch (e) {
-        console.error("Initialization failed:", e);
-        alert("Failed to start the application. Check console for details.");
+        console.error("Error:", e);
+        alert("Failed to start: " + e.message);
       }
     })();
   </script>

@@ -19,8 +19,15 @@
   <!-- بارگذاری MediaPipe Hands -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
   <!-- بارگذاری Three.js -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js" onload="console.log('Three.js loaded')" onerror="console.error('Failed to load Three.js')"></script>
   <script>
+    // چک کردن اینکه Three.js لود شده یا نه
+    if (typeof THREE === 'undefined') {
+      console.error('THREE is not defined. Make sure Three.js is loaded.');
+      alert('Failed to load Three.js. Check your internet connection or console for details.');
+      throw new Error('Three.js not loaded');
+    }
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -55,15 +62,13 @@
     directionalLight.position.set(0, 1, 1);
     scene.add(directionalLight);
 
-    // آرایه‌ای برای نگه‌داری نقاط سه‌بعدی هر دست
+    // آرایه برای نقاط سه‌بعدی
     const handMeshes = [];
 
     hands.onResults((results) => {
-      // پاک کردن کانواس 2D و کشیدن تصویر ویدیو
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // پاک کردن مدل‌های قبلی از صحنه
       handMeshes.forEach(mesh => scene.remove(mesh));
       handMeshes.length = 0;
 
@@ -71,11 +76,10 @@
         console.log(`Detected ${results.multiHandLandmarks.length} hands`);
         for (const landmarks of results.multiHandLandmarks) {
           for (const [i, point] of landmarks.entries()) {
-            const x = (point.x - 0.5) * 10; // مقیاس به مختصات سه‌بعدی
-            const y = -(point.y - 0.5) * 10; // معکوس Y برای جهت‌گیری درست
-            const z = point.z * 10; // عمق
+            const x = (point.x - 0.5) * 10;
+            const y = -(point.y - 0.5) * 10;
+            const z = point.z * 10;
 
-            // ایجاد کره کوچک برای هر نقطه دست
             const geometry = new THREE.SphereGeometry(0.1, 16, 16);
             const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const sphere = new THREE.Mesh(geometry, material);
@@ -83,7 +87,6 @@
             scene.add(sphere);
             handMeshes.push(sphere);
 
-            // رسم نقاط روی کانواس 2D
             const canvasX = point.x * canvas.width;
             const canvasY = point.y * canvas.height;
             ctx.beginPath();
@@ -91,7 +94,6 @@
             ctx.fillStyle = 'red';
             ctx.fill();
 
-            // اتصال نقاط با خط (اختیاری)
             if (i > 0) {
               const prevPoint = landmarks[i - 1];
               const prevX = (prevPoint.x - 0.5) * 10;
@@ -148,8 +150,6 @@
       } else {
         console.log("Video not ready yet, skipping frame");
       }
-
-      // رندر صحنه سه‌بعدی
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }

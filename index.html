@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hand Tracking with 3D Model</title>
+  <title>Hand Tracking with 3D Ring Model</title>
   <style>
     video { width: 640px; height: 480px; border: 1px solid blue; }
     canvas { border: 1px solid black; }
@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <h3>Hand Tracking with 3D Model</h3>
+  <h3>666 Tracking with 3D Ring Model</h3>
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas" width="640" height="480"></canvas>
   <canvas id="threeCanvas"></canvas>
@@ -20,6 +20,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
   <!-- بارگذاری Three.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" onload="console.log('Three.js loaded successfully')" onerror="console.error('Failed to load Three.js')"></script>
+  <!-- بارگذاری GLTFLoader -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js" onload="console.log('GLTFLoader loaded')" onerror="console.error('Failed to load GLTFLoader')"></script>
   <script>
     // چک کردن لود شدن Three.js
     if (typeof THREE === 'undefined') {
@@ -44,7 +46,7 @@
     });
 
     hands.setOptions({
-      maxNumHands: 2,
+      maxNumHands: 1, // فقط یک دست برای سادگی
       modelComplexity: 1,
       minDetectionConfidence: 0.5,
       minTrackingConfidence: 0.5
@@ -65,7 +67,25 @@
     directionalLight.position.set(0, 1, 1);
     scene.add(directionalLight);
 
-    // آرایه برای نقاط سه‌بعدی
+    // لودر برای مدل GLTF
+    const loader = new THREE.GLTFLoader();
+    let ringModel;
+
+    // بارگذاری مدل ring.glb
+    loader.load(
+      'https://ebrahimi1989.github.io/VR/ring.glb', // فرض بر اینه که اینجا آپلود شده
+      (gltf) => {
+        ringModel = gltf.scene;
+        ringModel.scale.set(2, 2, 2); // مقیاس مدل
+        ringModel.position.set(0, 0, 0);
+        scene.add(ringModel);
+        console.log('Ring model loaded successfully');
+      },
+      (xhr) => console.log(`Loading ring model: ${(xhr.loaded / xhr.total * 100)}%`),
+      (error) => console.error('Error loading ring model:', error)
+    );
+
+    // آرایه برای نگه‌داری مدل‌ها
     const handMeshes = [];
 
     hands.onResults((results) => {
@@ -75,47 +95,28 @@
       handMeshes.forEach(mesh => scene.remove(mesh));
       handMeshes.length = 0;
 
-      if (results.multiHandLandmarks) {
+      if (results.multiHandLandmarks && ringModel) {
         console.log(`Detected ${results.multiHandLandmarks.length} hands`);
-        for (const landmarks of results.multiHandLandmarks) {
-          for (const [i, point] of landmarks.entries()) {
-            const x = (point.x - 0.5) * 10;
-            const y = -(point.y - 0.5) * 10;
-            const z = point.z * 10;
+        const landmarks = results.multiHandLandmarks[0]; // فقط اولین دست
+        const wrist = landmarks[0]; // استفاده از مچ برای موقعیت مدل
+        const x = (wrist.x - 0.5) * 10;
+        const y = -(wrist.y - 0.5) * 10;
+        const z = wrist.z * 10;
 
-            const geometry = new THREE.SphereGeometry(0.15, 16, 16);
-            const material = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-            const sphere = new THREE.Mesh(geometry, material);
-            sphere.position.set(x, y, z);
-            scene.add(sphere);
-            handMeshes.push(sphere);
+        ringModel.position.set(x, y, z);
+        handMeshes.push(ringModel);
 
-            const canvasX = point.x * canvas.width;
-            const canvasY = point.y * canvas.height;
-            ctx.beginPath();
-            ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI);
-            ctx.fillStyle = 'red';
-            ctx.fill();
-
-            if (i > 0) {
-              const prevPoint = landmarks[i - 1];
-              const prevX = (prevPoint.x - 0.5) * 10;
-              const prevY = -(prevPoint.y - 0.5) * 10;
-              const prevZ = prevPoint.z * 10;
-
-              const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-                new THREE.Vector3(prevX, prevY, prevZ),
-                new THREE.Vector3(x, y, z)
-              ]);
-              const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
-              const line = new THREE.Line(lineGeometry, lineMaterial);
-              scene.add(line);
-              handMeshes.push(line);
-            }
-          }
+        // رسم نقاط روی کانواس 2D
+        for (const point of landmarks) {
+          const canvasX = point.x * canvas.width;
+          const canvasY = point.y * canvas.height;
+          ctx.beginPath();
+          ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI);
+          ctx.fillStyle = 'red';
+          ctx.fill();
         }
       } else {
-        console.log("No hands detected");
+        console.log("No hands detected or ring model not loaded yet");
       }
     });
 

@@ -18,14 +18,16 @@
 
   <!-- بارگذاری MediaPipe Hands -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
-  <!-- بارگذاری Three.js از فایل لوکال -->
-  <script src="./three.min.js" onload="console.log('Three.js loaded')" onerror="console.error('Failed to load Three.js')"></script>
+  <!-- بارگذاری Three.js از CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js" onload="console.log('Three.js loaded successfully')" onerror="console.error('Failed to load Three.js from CDN')"></script>
   <script>
     // چک کردن لود شدن Three.js
     if (typeof THREE === 'undefined') {
-      console.error('THREE is not defined. Make sure Three.js is loaded correctly.');
-      alert('Failed to load Three.js. Check if three.min.js is in the correct folder.');
+      console.error('THREE is not defined. Make sure Three.js is loaded from CDN.');
+      alert('Failed to load Three.js from CDN. Check your internet connection or console for details.');
       throw new Error('Three.js not loaded');
+    } else {
+      console.log('THREE is defined. Proceeding with setup.');
     }
 
     const video = document.getElementById('video');

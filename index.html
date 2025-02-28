@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>۱۱۱۱۱ Tracking with MediaPipe</title>
+  <title>صصص Tracking with MediaPipe</title>
   <style>
     video { width: 640px; height: 480px; border: 1px solid blue; }
     canvas { border: 1px solid black; }
@@ -14,14 +14,13 @@
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas" width="640" height="480"></canvas>
 
-  <!-- بارگذاری از CDN برای اطمینان -->
+  <!-- بارگذاری از CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
-    // استفاده از CDN برای فایل‌ها
     const hands = new Hands({
       locateFile: (file) => {
         console.log(`Loading: ${file}`);
@@ -53,25 +52,47 @@
             ctx.fill();
           }
         }
+      } else {
+        console.log("No hands detected");
       }
     });
 
     async function startCamera() {
+      console.log("Starting camera...");
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
-        video.onloadedmetadata = () => {
-          video.play();
-          console.log("Camera started");
-        };
+        await new Promise((resolve) => {
+          video.onloadedmetadata = () => {
+            console.log("Video metadata loaded");
+            video.play();
+            resolve();
+          };
+        });
+        console.log("Camera started");
+        // چک کردن اینکه ویدیو واقعاً آماده است
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+          throw new Error("Video dimensions are not ready yet");
+        }
       } catch (e) {
         console.error("Camera error:", e);
         alert("Camera failed: " + e.message);
+        throw e;
       }
     }
 
     async function animate() {
-      await hands.send({ image: video });
+      // فقط اگه ویدیو آماده باشه پردازش کنه
+      if (video.readyState >= 2) { // HAVE_CURRENT_DATA یا بالاتر
+        try {
+          await hands.send({ image: video });
+          console.log("Frame processed");
+        } catch (e) {
+          console.error("Processing error:", e);
+        }
+      } else {
+        console.log("Video not ready yet, skipping frame");
+      }
       requestAnimationFrame(animate);
     }
 

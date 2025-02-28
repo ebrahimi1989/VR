@@ -2,25 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>صصص Tracking with MediaPipe</title>
+  <title>Hand Tracking with 3D Model</title>
   <style>
     video { width: 640px; height: 480px; border: 1px solid blue; }
     canvas { border: 1px solid black; }
+    #threeCanvas { width: 640px !important; height: 480px !important; border: 1px solid green; }
     body { display: flex; flex-direction: column; align-items: center; }
   </style>
 </head>
 <body>
-  <h3>Hand Tracking Test</h3>
+  <h3>Hand Tracking with 3D Model</h3>
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas" width="640" height="480"></canvas>
+  <canvas id="threeCanvas"></canvas>
 
-  <!-- بارگذاری از CDN -->
+  <!-- بارگذاری MediaPipe Hands -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
+  <!-- بارگذاری Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    const threeCanvas = document.getElementById('threeCanvas');
 
+    // تنظیم MediaPipe Hands
     const hands = new Hands({
       locateFile: (file) => {
         console.log(`Loading: ${file}`);
@@ -35,21 +41,72 @@
       minTrackingConfidence: 0.5
     });
 
+    // تنظیم Three.js
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, 640 / 480, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: threeCanvas });
+    renderer.setSize(640, 480);
+    camera.position.z = 5;
+
+    // نور محیطی
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(0, 1, 1);
+    scene.add(directionalLight);
+
+    // آرایه‌ای برای نگه‌داری نقاط سه‌بعدی هر دست
+    const handMeshes = [];
+
     hands.onResults((results) => {
-      console.log("Results received");
+      // پاک کردن کانواس 2D و کشیدن تصویر ویدیو
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // پاک کردن مدل‌های قبلی از صحنه
+      handMeshes.forEach(mesh => scene.remove(mesh));
+      handMeshes.length = 0;
 
       if (results.multiHandLandmarks) {
         console.log(`Detected ${results.multiHandLandmarks.length} hands`);
         for (const landmarks of results.multiHandLandmarks) {
-          for (const point of landmarks) {
-            const x = point.x * canvas.width;
-            const y = point.y * canvas.height;
+          for (const [i, point] of landmarks.entries()) {
+            const x = (point.x - 0.5) * 10; // مقیاس به مختصات سه‌بعدی
+            const y = -(point.y - 0.5) * 10; // معکوس Y برای جهت‌گیری درست
+            const z = point.z * 10; // عمق
+
+            // ایجاد کره کوچک برای هر نقطه دست
+            const geometry = new THREE.SphereGeometry(0.1, 16, 16);
+            const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(x, y, z);
+            scene.add(sphere);
+            handMeshes.push(sphere);
+
+            // رسم نقاط روی کانواس 2D
+            const canvasX = point.x * canvas.width;
+            const canvasY = point.y * canvas.height;
             ctx.beginPath();
-            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.arc(canvasX, canvasY, 5, 0, 2 * Math.PI);
             ctx.fillStyle = 'red';
             ctx.fill();
+
+            // اتصال نقاط با خط (اختیاری)
+            if (i > 0) {
+              const prevPoint = landmarks[i - 1];
+              const prevX = (prevPoint.x - 0.5) * 10;
+              const prevY = -(prevPoint.y - 0.5) * 10;
+              const prevZ = prevPoint.z * 10;
+
+              const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                new THREE.Vector3(prevX, prevY, prevZ),
+                new THREE.Vector3(x, y, z)
+              ]);
+              const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+              const line = new THREE.Line(lineGeometry, lineMaterial);
+              scene.add(line);
+              handMeshes.push(line);
+            }
           }
         }
       } else {
@@ -70,7 +127,6 @@
           };
         });
         console.log("Camera started");
-        // چک کردن اینکه ویدیو واقعاً آماده است
         if (video.videoWidth === 0 || video.videoHeight === 0) {
           throw new Error("Video dimensions are not ready yet");
         }
@@ -82,8 +138,7 @@
     }
 
     async function animate() {
-      // فقط اگه ویدیو آماده باشه پردازش کنه
-      if (video.readyState >= 2) { // HAVE_CURRENT_DATA یا بالاتر
+      if (video.readyState >= 2) {
         try {
           await hands.send({ image: video });
           console.log("Frame processed");
@@ -93,6 +148,9 @@
       } else {
         console.log("Video not ready yet, skipping frame");
       }
+
+      // رندر صحنه سه‌بعدی
+      renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
 

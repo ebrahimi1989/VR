@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>۱۱۱۱۱۱ Tracking with MediaPipe</title>
+  <title>Hand Tracking with MediaPipe</title>
   <style>
     canvas { border: 1px solid black; }
-    video { display: none; }
+    video { width: 640px; height: 480px; border: 1px solid blue; }
+    body { display: flex; flex-direction: column; align-items: center; }
   </style>
 </head>
 <body>
+  <h3>ببب Tracking Test</h3>
   <video id="video" autoplay playsinline></video>
   <canvas id="canvas" width="640" height="480"></canvas>
 
@@ -20,11 +22,16 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
 
+    // تابع برای لاگ کردن
+    function log(message) {
+      console.log(`[Hand Tracking] ${message}`);
+    }
+
     // تنظیمات Hands
     const hands = new Hands({
       locateFile: (file) => {
-        console.log(`Loading file: ${file}`); // برای دیباگ
-        return `./${file}`; // مسیر فایل‌های WASM و داده‌ها
+        log(`Trying to load file: ${file}`);
+        return `./${file}`; // مسیر فایل‌ها رو چک کنید
       }
     });
 
@@ -38,12 +45,12 @@
 
     // مدیریت نتایج
     hands.onResults((results) => {
-      // پاک کردن کانواس
+      log("Received results from Hands");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // رسم نقاط دست
       if (results.multiHandLandmarks) {
+        log(`Detected ${results.multiHandLandmarks.length} hands`);
         for (const landmarks of results.multiHandLandmarks) {
           for (const point of landmarks) {
             const x = point.x * canvas.width;
@@ -54,22 +61,28 @@
             ctx.fill();
           }
         }
+      } else {
+        log("No hands detected");
       }
     });
 
     // تابع شروع دوربین
     async function startCamera() {
+      log("Requesting camera access...");
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
+        log("Camera stream obtained");
         return new Promise((resolve) => {
           video.onloadedmetadata = () => {
+            log("Video metadata loaded, playing...");
             video.play();
             resolve();
           };
         });
       } catch (e) {
-        console.error("Error accessing camera:", e);
+        console.error("Camera access failed:", e);
+        alert("Cannot access camera. Check permissions or device availability.");
       }
     }
 
@@ -77,27 +90,29 @@
     async function animate() {
       try {
         await hands.send({ image: video });
+        log("Frame processed");
       } catch (e) {
-        console.error("Error in hands.send:", e);
+        console.error("Error processing frame:", e);
       }
       requestAnimationFrame(animate);
     }
 
     // شروع برنامه
     (async () => {
+      log("Starting application...");
       try {
-        // مقداردهی اولیه Hands
-        console.log("Initializing Hands...");
+        log("Initializing Hands...");
         await hands.initialize();
-        console.log("Hands initialized successfully!");
+        log("Hands initialized successfully");
 
-        // شروع دوربین
+        log("Starting camera...");
         await startCamera();
 
-        // شروع انیمیشن
+        log("Starting animation loop...");
         animate();
       } catch (e) {
-        console.error("Error during initialization:", e);
+        console.error("Initialization failed:", e);
+        alert("Failed to start the application. Check console for details.");
       }
     })();
   </script>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hand Tracking with 3D Model</title>
+  <title>ببب Tracking with 3D Model</title>
   <style>
     video { width: 640px; height: 480px; border: 1px solid blue; }
     canvas { border: 1px solid black; }
@@ -18,13 +18,13 @@
 
   <!-- بارگذاری MediaPipe Hands -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js"></script>
-  <!-- بارگذاری Three.js -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js" onload="console.log('Three.js loaded')" onerror="console.error('Failed to load Three.js')"></script>
+  <!-- بارگذاری Three.js از فایل لوکال -->
+  <script src="./three.min.js" onload="console.log('Three.js loaded')" onerror="console.error('Failed to load Three.js')"></script>
   <script>
-    // چک کردن اینکه Three.js لود شده یا نه
+    // چک کردن لود شدن Three.js
     if (typeof THREE === 'undefined') {
-      console.error('THREE is not defined. Make sure Three.js is loaded.');
-      alert('Failed to load Three.js. Check your internet connection or console for details.');
+      console.error('THREE is not defined. Make sure Three.js is loaded correctly.');
+      alert('Failed to load Three.js. Check if three.min.js is in the correct folder.');
       throw new Error('Three.js not loaded');
     }
 
